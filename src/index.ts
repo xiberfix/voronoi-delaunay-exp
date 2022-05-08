@@ -50,3 +50,33 @@ const points = [...range(0, N)].map(_ => Vec2.random().mul(CANVAS_SIZE).sub(CANV
 
 for (const point of points)
     drawPoint(point)
+
+
+// Draw random triangles
+
+class Triangle {
+    constructor(
+        public a: Vec2,
+        public b: Vec2,
+        public c: Vec2,
+    ) {}
+}
+
+function drawTriangle(t: Triangle, color: string = '#000000') {
+    const {a, b, c} = t
+    context.strokeStyle = color
+    context.beginPath()
+    context.moveTo(tx(a.x), ty(a.y))
+    context.lineTo(tx(b.x), ty(b.y))
+    context.lineTo(tx(c.x), ty(c.y))
+    context.lineTo(tx(a.x), ty(a.y))
+    context.stroke()
+}
+
+function* chunks<T>(xs: T[], n: number) {
+    for (let i = 0; i < xs.length; i += n)
+        yield xs.slice(i, i + n)
+}
+
+for (const [a, b, c] of chunks(points, 3))
+    drawTriangle(new Triangle(a, b, c))
