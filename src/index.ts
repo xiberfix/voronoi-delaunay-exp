@@ -80,3 +80,24 @@ function* chunks<T>(xs: T[], n: number) {
 
 for (const [a, b, c] of chunks(points, 3))
     drawTriangle(new Triangle(a, b, c))
+
+
+// Draw random circles
+
+class Circle {
+    constructor(
+        public p: Vec2,
+        public r: number,
+    ) {}
+}
+
+function drawCircle(c: Circle, color: string = '#000000') {
+    const {p, r} = c
+    context.strokeStyle = color
+    context.beginPath()
+    context.arc(tx(p.x), ty(p.y), r, 0, Math.PI * 2)
+    context.stroke()
+}
+
+for (const point of points)
+    drawCircle(new Circle(point, Math.random() * 100))
