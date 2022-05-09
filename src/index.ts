@@ -45,7 +45,7 @@ function* range(a: number, b: number) {
         yield i
 }
 
-const N = 3
+const N = 9
 const points = [...range(0, N)].map(_ => Vec2.random().mul(CANVAS_SIZE).sub(CANVAS_OFFSET))
 
 for (const point of points)
@@ -129,3 +129,41 @@ function findCircumscribedCircle(t: Triangle): Circle {
 
 for (const [a, b, c] of chunks(points, 3))
     drawCircle(findCircumscribedCircle(new Triangle(a, b, c)), '#ff0000')
+
+
+// Bounds
+
+interface Bounds {
+    min: Vec2
+    max: Vec2
+}
+
+function drawBounds(b: Bounds, color: string = '#000000') {
+    const {min, max} = b
+    const tl = new Vec2(min.x, max.y)
+    const tr = new Vec2(max.x, max.y)
+    const bl = new Vec2(min.x, min.y)
+    const br = new Vec2(max.x, min.y)
+    context.strokeStyle = color
+    context.beginPath()
+    context.moveTo(tx(tl.x), ty(tl.y))
+    context.lineTo(tx(tr.x), ty(tr.y))
+    context.lineTo(tx(br.x), ty(br.y))
+    context.lineTo(tx(bl.x), ty(bl.y))
+    context.lineTo(tx(tl.x), ty(tl.y))
+    context.stroke()
+}
+
+function findBounds(points: Vec2[]): Bounds | undefined {
+    if (points.length === 0) return
+
+    let min = points[0]
+    let max = points[0]
+    for (const point of points) {
+        min = point.min(min)
+        max = point.max(max)
+    }
+    return {min, max}
+}
+
+drawBounds(findBounds(points)!, '#00ff00')
