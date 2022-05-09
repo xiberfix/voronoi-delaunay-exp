@@ -13,6 +13,10 @@ export class Vec2 {
 
     dot(rhs: Vec2): number { return this.x * rhs.x + this.y * rhs.y }
 
+    cross(rhs: Vec2): number { return this.x * rhs.y - this.y * rhs.x }
+    get crossLeft(): Vec2 { return new Vec2(-this.y, this.x) }
+    get crossRight(): Vec2 { return new Vec2(this.y, -this.x) }
+
     get lengthSq(): number { return this.dot(this) }
     get length(): number { return Math.sqrt(this.lengthSq) }
 
