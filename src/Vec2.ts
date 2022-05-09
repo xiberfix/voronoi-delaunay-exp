@@ -1,3 +1,5 @@
+import {eq} from './math'
+
 export class Vec2 {
     constructor(
         public x: number,
@@ -27,4 +29,6 @@ export class Vec2 {
     max(rhs: Vec2): Vec2 { return new Vec2(Math.max(this.x, rhs.x), Math.max(this.y, rhs.y)) }
 
     static random(): Vec2 { return new Vec2(Math.random(), Math.random()) }
+
+    eq(rhs: Vec2): boolean { return eq(this.x, rhs.x) && eq(this.y, rhs.y) }
 }
