@@ -1,5 +1,6 @@
 import './style.css'
 import {Vec2} from './Vec2'
+import {counts, partition, range} from './collection'
 
 
 // Prepare drawing surface
@@ -38,11 +39,6 @@ function drawPoint(p: Vec2, color: string = '#000000') {
     context.fillStyle = color
     context.arc(tx(p.x), ty(p.y), POINT_SIZE, 0, Math.PI * 2)
     context.fill()
-}
-
-function* range(a: number, b: number) {
-    for (let i = a; i < b; i++)
-        yield i
 }
 
 const N = 9
@@ -92,11 +88,6 @@ function drawTriangle(t: Triangle, color: string = '#000000') {
     context.lineTo(tx(c.x), ty(c.y))
     context.lineTo(tx(a.x), ty(a.y))
     context.stroke()
-}
-
-function* chunks<T>(xs: T[], n: number) {
-    for (let i = 0; i < xs.length; i += n)
-        yield xs.slice(i, i + n)
 }
 
 
@@ -193,31 +184,6 @@ function extendBounds(bounds: Bounds, gap: number): Bounds {
 
 
 // Triangulation
-
-function partition<T>(xs: T[], pred: (x: T) => boolean): [T[], T[]] {
-    return xs.reduce(
-        (acc, x) => {
-            acc[pred(x) ? 0 : 1].push(x)
-            return acc
-        },
-        [[], []])
-}
-
-function counts<T>(xs: T[], compare: (a: T, b: T) => boolean): [T, number][] {
-    const result: [T, number][] = []
-    for (const x of xs) {
-        let add = true
-        for (const r of result) {
-            if (compare(x, r[0])) {
-                r[1] += 1
-                add = false
-                break
-            }
-        }
-        if (add) result.push([x, 1])
-    }
-    return result
-}
 
 function delaunay(points: Vec2[], clean?: boolean, bounds?: Bounds): Triangle[] {
     // 1. find initial triangulation containing all points
