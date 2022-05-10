@@ -1,6 +1,7 @@
 import './style.css'
 import {Vec2} from './Vec2'
 import {counts, partition, range} from './collection'
+import {Circle, Bounds, Triangle, extendBounds, findBounds} from './geom2'
 
 
 // Prepare drawing surface
@@ -18,9 +19,6 @@ function scaleCanvas(canvas: HTMLCanvasElement) {
 
 scaleCanvas(canvas)
 
-
-// Draw random points
-
 function getCanvasSize(): Vec2 {
     const {width, height} = canvas.getBoundingClientRect()
     return new Vec2(width, height)
@@ -32,6 +30,9 @@ const CANVAS_OFFSET = CANVAS_SIZE.scale(0.5)
 function tx(x: number) { return +x + CANVAS_OFFSET.x }
 function ty(y: number) { return -y + CANVAS_OFFSET.y }
 
+
+// Drawing
+
 const POINT_SIZE = 2
 
 function drawPoint(p: Vec2, color: string = '#000000') {
@@ -39,44 +40,6 @@ function drawPoint(p: Vec2, color: string = '#000000') {
     context.fillStyle = color
     context.arc(tx(p.x), ty(p.y), POINT_SIZE, 0, Math.PI * 2)
     context.fill()
-}
-
-const N = 9
-const DATA_SIZE = CANVAS_SIZE.scale(0.5)
-const DATA_OFFSET = DATA_SIZE.scale(0.5)
-const points = [...range(0, N)].map(_ => Vec2.random().mul(DATA_SIZE).sub(DATA_OFFSET))
-
-for (const point of points)
-    drawPoint(point)
-
-
-// Draw random triangles
-
-class Triangle {
-    constructor(
-        public a: Vec2,
-        public b: Vec2,
-        public c: Vec2,
-    ) {
-        this.circumcircle = findCircumscribedCircle(this)
-    }
-
-    circumcircle: Circle
-
-    * edges() {
-        yield new Edge(this.a, this.b)
-        yield new Edge(this.b, this.c)
-        yield new Edge(this.c, this.a)
-    }
-}
-
-class Edge {
-    constructor(
-        public a: Vec2,
-        public b: Vec2,
-    ) {}
-
-    eq(rhs: Edge): boolean { return this.a.eq(rhs.a) && this.b.eq(rhs.b) || this.a.eq(rhs.b) && this.b.eq(rhs.a) }
 }
 
 function drawTriangle(t: Triangle, color: string = '#000000') {
@@ -90,60 +53,12 @@ function drawTriangle(t: Triangle, color: string = '#000000') {
     context.stroke()
 }
 
-
-// Draw random circles
-
-class Circle {
-    constructor(
-        public p: Vec2,
-        public r: number,
-    ) {}
-
-    contains(p: Vec2): boolean { return this.p.distanceTo(p) <= this.r }
-}
-
 function drawCircle(c: Circle, color: string = '#000000') {
     const {p, r} = c
     context.strokeStyle = color
     context.beginPath()
     context.arc(tx(p.x), ty(p.y), r, 0, Math.PI * 2)
     context.stroke()
-}
-
-
-// Circumscribed Circle
-
-function findCircumscribedCircle(t: Triangle): Circle {
-    // Equations:
-    // v_i ~~ vertex
-    // O ~~ center
-    // p = O - v_0 ~~ radius
-    // u_i = v_i - v_0 ~~ side
-    // p - u_i ~~ radius
-    // |p - u_i|^2 = |p|^2 <->
-    // p * u_i = |u_i|^2 / 2 ~~ system
-
-    const {a: v0, b: v1, c: v2} = t
-    const u1 = v1.sub(v0)
-    const u2 = v2.sub(v0)
-
-    const q1 = u2.crossRight.scale(u1.lengthSq) // (u2 cross z) * |u1|^2
-    const q2 = u1.crossLeft.scale(u2.lengthSq) // (z cross u1) * |u2|^2
-    const q = q1.add(q2)
-    const det = u1.cross(u2)
-    const center = v0.add(q.scale(1 / (2 * det)))
-
-    const r = v0.distanceTo(center)
-
-    return new Circle(center, r)
-}
-
-
-// Bounds
-
-interface Bounds {
-    min: Vec2
-    max: Vec2
 }
 
 function drawBounds(b: Bounds, color: string = '#000000') {
@@ -160,26 +75,6 @@ function drawBounds(b: Bounds, color: string = '#000000') {
     context.lineTo(tx(bl.x), ty(bl.y))
     context.lineTo(tx(tl.x), ty(tl.y))
     context.stroke()
-}
-
-function findBounds(points: Vec2[]): Bounds | undefined {
-    if (points.length === 0) return
-
-    let min = points[0]
-    let max = points[0]
-    for (const point of points) {
-        min = point.min(min)
-        max = point.max(max)
-    }
-    return {min, max}
-}
-
-function extendBounds(bounds: Bounds, gap: number): Bounds {
-    const d = new Vec2(gap, gap)
-    return {
-        min: bounds.min.sub(d),
-        max: bounds.max.add(d),
-    }
 }
 
 
@@ -230,7 +125,17 @@ function delaunay(points: Vec2[], clean?: boolean, bounds?: Bounds): Triangle[] 
     return result
 }
 
+
+// Example
+
+const N = 9
+const DATA_SIZE = CANVAS_SIZE.scale(0.5)
+const DATA_OFFSET = DATA_SIZE.scale(-0.5)
+const points = [...range(0, N)].map(_ => Vec2.random().mul(DATA_SIZE).add(DATA_OFFSET))
+
 const triangulation = delaunay(points, true)
 
+for (const point of points)
+    drawPoint(point)
 for (const t of triangulation)
     drawTriangle(t, '#00ffff')
