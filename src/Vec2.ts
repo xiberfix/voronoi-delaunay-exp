@@ -1,5 +1,6 @@
 import {eq} from './math'
 
+
 export class Vec2 {
     constructor(
         public x: number,
