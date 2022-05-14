@@ -10,7 +10,7 @@ const drawer = new Drawer2('surface')
 
 function delaunay(points: Vec2[], clean?: boolean, bounds?: Bounds): Triangle[] {
     // 1. find initial triangulation containing all points
-    const GAP = 10
+    const GAP = 10000
     const {min, max} = bounds ?? extendBounds(findBounds(points)!, GAP)
 
     const tl = new Vec2(min.x, max.y)
